@@ -1,5 +1,7 @@
+// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, sort_child_properties_last, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
-import 'package:grapp/UI/Homepage.dart';
+import 'package:grapp/UI/homepage.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -119,7 +121,7 @@ class _OnbordingState extends State<Onbording> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const Homepage(),
+                      builder: (_) => Homepage(),
                     ),
                   );
                 }

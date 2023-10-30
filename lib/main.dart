@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:grapp/UI/Homepage.dart';
+import 'package:grapp/UI/homepage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:change_app_package_name/change_app_package_name.dart';
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
-      title: 'Grapp',
+      title: 'Grave Mapping',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: showHome ? const Homepage() : Onbording(),
+      home: showHome ? Homepage() : Onbording(),
     );
   }
 }

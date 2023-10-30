@@ -1,5 +1,7 @@
+// ignore_for_file: file_names
+
 import 'package:flutter/material.dart';
-import 'package:grapp/UI/Homepage.dart';
+import 'package:grapp/UI/homepage.dart';
 import 'package:grapp/UI/usersGuide_content.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -133,8 +135,6 @@ class _UsersGuideOnbordingState extends State<UsersGuideOnbording> {
             width: double.infinity,
             child: FloatingActionButton(
               backgroundColor: const Color.fromARGB(255, 5, 44, 77),
-              child: Text(
-                  currentIndex == contents.length - 1 ? "Continue" : "Next"),
               onPressed: () async {
                 if (currentIndex == contents.length - 1) {
                   final prefs = await SharedPreferences.getInstance();
@@ -143,7 +143,7 @@ class _UsersGuideOnbordingState extends State<UsersGuideOnbording> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const Homepage(),
+                      builder: (_) => Homepage(),
                     ),
                   );
                 }
@@ -155,6 +155,8 @@ class _UsersGuideOnbordingState extends State<UsersGuideOnbording> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
+              child: Text(
+                  currentIndex == contents.length - 1 ? "Continue" : "Next"),
             ),
           )
         ],
