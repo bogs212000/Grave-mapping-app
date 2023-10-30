@@ -54,6 +54,7 @@ dependencies:
   shimmer: ^2.0.0
   change_app_package_name: ^1.1.0
   webview_flutter: ^2.8.0
+  fluttertoast: ^8.0.8
 
 dev_dependencies:
   flutter_test:

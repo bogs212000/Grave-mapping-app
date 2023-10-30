@@ -1,6 +1,5 @@
 // ignore_for_file: prefer_const_constructors
 
-import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -23,8 +22,7 @@ class ListPage extends StatefulWidget {
 }
 
 class _ListPageState extends State<ListPage> {
-  late TabController _tabController;
-  final Completer<GoogleMapController> _controller = Completer();
+  TextEditingController search2Controller = TextEditingController();
   bool servicestatus = false;
   bool haspermission = false;
   late LocationPermission permission;
@@ -93,6 +91,7 @@ class _ListPageState extends State<ListPage> {
                 height: 40,
                 width: search == "" ? 100 : 120,
                 child: TextFormField(
+                  controller: search2Controller,
                   textCapitalization: TextCapitalization.words,
                   onChanged: (value) {
                     setState(() {
@@ -104,10 +103,23 @@ class _ListPageState extends State<ListPage> {
                     contentPadding: const EdgeInsets.all(10),
                     focusColor: Colors.white,
                     hintText: "Search...",
-                    suffixIcon: Image.asset(
-                      'assets/searchIcon.png',
-                      scale: 3,
-                    ),
+                    suffixIcon: search == ""
+                        ? Image.asset(
+                            'assets/searchIcon.png',
+                            scale: 3,
+                          )
+                        : GestureDetector(
+                            onTap: () {
+                              search2Controller.clear();
+                              setState(() {
+                                search = "";
+                              });
+                            },
+                            child: Icon(
+                              Icons.cancel_outlined,
+                              color: Colors.grey,
+                            ),
+                          ),
                     filled: true,
                     fillColor: Colors.white,
                     focusedBorder: OutlineInputBorder(
@@ -129,13 +141,13 @@ class _ListPageState extends State<ListPage> {
         body: StreamBuilder(
           stream: (search != "")
               ? FirebaseFirestore.instance
-              .collection("Records")
-              .where("Fullname", isGreaterThanOrEqualTo: search)
-              .snapshots()
+                  .collection("Records")
+                  .where("Fullname", isGreaterThanOrEqualTo: search)
+                  .snapshots()
               : FirebaseFirestore.instance
-              .collection('Records')
-              .orderBy("$sortBy")
-              .snapshots(),
+                  .collection('Records')
+                  .orderBy("$sortBy")
+                  .snapshots(),
           builder:
               (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.hasError) {
@@ -162,20 +174,19 @@ class _ListPageState extends State<ListPage> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return ListView.builder(
                 itemCount: 10,
-                itemBuilder: (context, index) =>
-                    Shimmer.fromColors(
-                        baseColor: Color.fromARGB(255, 5, 44, 77),
-                        highlightColor: Colors.white,
-                        child: Padding(
-                          padding: EdgeInsets.all(10),
-                          child: Container(
-                            decoration: BoxDecoration(
-                                color: Colors.blue,
-                                borderRadius: BorderRadius.circular(20)),
-                            height: 100,
-                            width: double.infinity,
-                          ),
-                        )),
+                itemBuilder: (context, index) => Shimmer.fromColors(
+                    baseColor: Color.fromARGB(255, 5, 44, 77),
+                    highlightColor: Colors.white,
+                    child: Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Container(
+                        decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(20)),
+                        height: 100,
+                        width: double.infinity,
+                      ),
+                    )),
               );
             }
             Row(children: const [
@@ -187,7 +198,7 @@ class _ListPageState extends State<ListPage> {
               physics: const BouncingScrollPhysics(),
               children: snapshot.data!.docs.map((DocumentSnapshot document) {
                 Map<String, dynamic> data =
-                document.data()! as Map<String, dynamic>;
+                    document.data()! as Map<String, dynamic>;
                 String? image = data["image"];
                 String? fullname = data["Fullname"];
                 String? birth = data["Date of Birth"];
@@ -264,40 +275,38 @@ class _ListPageState extends State<ListPage> {
                                     showDialog(
                                       context: context,
                                       barrierDismissible: false,
-                                      builder: (context) =>
-                                          Center(
-                                              child: (Container(
-                                                height: 400,
-                                                width: double.infinity,
-                                                decoration: BoxDecoration(
-                                                    borderRadius:
-                                                    BorderRadius.circular(20),
-                                                    border: Border.all(
-                                                        color: const Color
-                                                            .fromARGB(
-                                                            255, 69, 2, 124)),
-                                                    image: DecorationImage(
-                                                        image: CachedNetworkImageProvider(
-                                                            image.toString()),
-                                                        fit: BoxFit.cover)),
-                                                child: Column(children: [
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                    MainAxisAlignment.end,
-                                                    children: [
-                                                      GestureDetector(
-                                                          child: Image.asset(
-                                                            "assets/cancelIcon.png",
-                                                            scale: 3,
-                                                          ),
-                                                          onTap: () {
-                                                            Navigator.of(context)
-                                                                .pop();
-                                                          })
-                                                    ],
-                                                  )
-                                                ]),
-                                              ))),
+                                      builder: (context) => Center(
+                                          child: (Container(
+                                        height: 400,
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            border: Border.all(
+                                                color: const Color.fromARGB(
+                                                    255, 69, 2, 124)),
+                                            image: DecorationImage(
+                                                image:
+                                                    CachedNetworkImageProvider(
+                                                        image.toString()),
+                                                fit: BoxFit.cover)),
+                                        child: Column(children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            children: [
+                                              GestureDetector(
+                                                  child: Image.asset(
+                                                    "assets/cancelIcon.png",
+                                                    scale: 3,
+                                                  ),
+                                                  onTap: () {
+                                                    Navigator.of(context).pop();
+                                                  })
+                                            ],
+                                          )
+                                        ]),
+                                      ))),
                                     );
                                   },
                                 ),
@@ -311,199 +320,200 @@ class _ListPageState extends State<ListPage> {
                                     showDialog(
                                       context: context,
                                       barrierDismissible: false,
-                                      builder: (context) =>
-                                          Center(
-                                              child: (Container(
-                                                padding: const EdgeInsets.all(10),
-                                                height: 500,
-                                                width: double.infinity,
-                                                decoration: BoxDecoration(
-                                                    borderRadius:
-                                                    BorderRadius.circular(20),
-                                                    border: Border.all(
-                                                        color: const Color
-                                                            .fromARGB(
-                                                            255, 69, 2, 124)),
-                                                    color: Colors.white),
-                                                child: Column(children: [
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                    MainAxisAlignment.end,
-                                                    children: [
-                                                      GestureDetector(
-                                                          child: Image.asset(
-                                                            "assets/cancelIcon.png",
-                                                            scale: 3,
-                                                          ),
-                                                          onTap: () {
-                                                            Navigator.of(context)
-                                                                .pop();
-                                                          }),
-                                                    ],
+                                      builder: (context) => Center(
+                                          child: (Container(
+                                        padding: const EdgeInsets.all(10),
+                                        height: 500,
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            border: Border.all(
+                                                color: const Color.fromARGB(
+                                                    255, 69, 2, 124)),
+                                            color: Colors.white),
+                                        child: Column(children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            children: [
+                                              GestureDetector(
+                                                  child: Image.asset(
+                                                    "assets/cancelIcon.png",
+                                                    scale: 3,
                                                   ),
-                                                  const SizedBox(height: 5),
-                                                  Container(
-                                                      decoration: BoxDecoration(
-                                                          borderRadius:
+                                                  onTap: () {
+                                                    Navigator.of(context).pop();
+                                                  }),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(20)),
+                                            height: 300,
+                                            width: double.infinity,
+                                            child: GoogleMap(
+                                              initialCameraPosition:
+                                                  CameraPosition(
+                                                      target: LatLng(lat, long),
+                                                      zoom: 30),
+                                              markers: (lat != null &&
+                                                      long != null)
+                                                  ? {
+                                                      Marker(
+                                                        markerId:
+                                                            const MarkerId(
+                                                                'graveMarker'),
+                                                        position:
+                                                            LatLng(lat, long),
+                                                        infoWindow: InfoWindow(
+                                                            title: fullname),
+                                                      )
+                                                    }
+                                                  : Set(),
+                                              zoomControlsEnabled: true,
+                                              zoomGesturesEnabled: true,
+                                              tiltGesturesEnabled: true,
+                                              scrollGesturesEnabled: true,
+                                              rotateGesturesEnabled: true,
+                                              mapType: mapType == "Satellite"
+                                                  ? MapType.satellite
+                                                  : MapType.normal,
+                                              trafficEnabled: true,
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            height: 10,
+                                          ),
+                                          SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            physics:
+                                                const BouncingScrollPhysics(),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                      color:
+                                                          const Color.fromARGB(
+                                                              255,
+                                                              203,
+                                                              232,
+                                                              255),
+                                                      borderRadius:
                                                           BorderRadius.circular(
                                                               20)),
-                                                      height: 300,
-                                                      width: double.infinity,
-                                                      child: GoogleMap(
-                                                          initialCameraPosition:
-                                                          CameraPosition(
-                                                              target: LatLng(
-                                                                  lat, long),
-                                                              zoom: 30),
-                                                          markers: (lat != null &&
-                                                              long != null) ? {
-                                                            Marker(
-                                                              markerId: const MarkerId(
-                                                                  'graveMarker'),
-                                                              position: LatLng(
-                                                                  lat, long),
-
-                                                              infoWindow: InfoWindow(
-                                                                  title: fullname),
-                                                            )
-                                                          }
-                                                              : Set(),
-                                                          zoomControlsEnabled: true,
-                                                          zoomGesturesEnabled: true,
-                                                          tiltGesturesEnabled:
-                                                          true,
-                                                          scrollGesturesEnabled: true,
-                                                          rotateGesturesEnabled: true,
-                                                          mapType: mapType == "Satellite"
-                                                          ? MapType.satellite
-                                                          : MapType.normal,
-                                                      trafficEnabled: true,
-                                                      ),),
-                                                  const SizedBox(
-                                                    height: 10,
+                                                  height: 130,
+                                                  width: 200,
+                                                  child: Column(
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Image.asset(
+                                                            'assets/helpIcon.png',
+                                                            scale: 3,
+                                                          )
+                                                        ],
+                                                      ),
+                                                      const Text(
+                                                        "       Please make sure you have a strong internet connection to use the app properly.",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    5,
+                                                                    44,
+                                                                    77)),
+                                                      )
+                                                    ],
                                                   ),
-                                                  SingleChildScrollView(
-                                                    scrollDirection: Axis
-                                                        .horizontal,
-                                                    physics:
-                                                    const BouncingScrollPhysics(),
-                                                    child: Row(
-                                                      children: [
-                                                        Container(
-                                                          padding:
-                                                          const EdgeInsets.all(
-                                                              10),
-                                                          decoration: BoxDecoration(
-                                                              color: const Color
-                                                                  .fromARGB(
-                                                                  255, 203, 232,
-                                                                  255),
-                                                              borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                  20)),
-                                                          height: 130,
-                                                          width: 200,
-                                                          child: Column(
-                                                            children: [
-                                                              Row(
-                                                                children: [
-                                                                  Image.asset(
-                                                                    'assets/helpIcon.png',
-                                                                    scale: 3,
-                                                                  )
-                                                                ],
-                                                              ),
-                                                              const Text(
-                                                                "       Please make sure you have a strong internet connection to use the app properly.",
-                                                                style: TextStyle(
-                                                                    color: Color
-                                                                        .fromARGB(
-                                                                        255, 5,
-                                                                        44, 77)),
-                                                              )
-                                                            ],
-                                                          ),
-                                                        ),
-                                                        const SizedBox(width: 20),
-                                                        Container(
-                                                          padding:
-                                                          const EdgeInsets.all(
-                                                              10),
-                                                          decoration: BoxDecoration(
-                                                              color: const Color
-                                                                  .fromARGB(
-                                                                  255, 203, 232,
-                                                                  255),
-                                                              borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                  20)),
-                                                          height: 130,
-                                                          width: 200,
-                                                          child: Column(
-                                                            children: [
-                                                              Row(
-                                                                children: [
-                                                                  Image.asset(
-                                                                    'assets/locationIcon.png',
-                                                                    scale: 3,
-                                                                  )
-                                                                ],
-                                                              ),
-                                                              const Text(
-                                                                "       To navigate to the grave, click the location icon on the Google map and then the direction icon at the bottom.",
-                                                                style: TextStyle(
-                                                                    color: Color
-                                                                        .fromARGB(
-                                                                        255, 5,
-                                                                        44, 77)),
-                                                              )
-                                                            ],
-                                                          ),
-                                                        ),
-                                                        const SizedBox(width: 20),
-                                                        Container(
-                                                          padding:
-                                                          const EdgeInsets.all(
-                                                              10),
-                                                          decoration: BoxDecoration(
-                                                              color: const Color
-                                                                  .fromARGB(
-                                                                  255, 203, 232,
-                                                                  255),
-                                                              borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                  20)),
-                                                          height: 130,
-                                                          width: 200,
-                                                          child: Column(
-                                                            children: [
-                                                              Row(
-                                                                children: [
-                                                                  Image.asset(
-                                                                    'assets/imageIcon.png',
-                                                                    scale: 3,
-                                                                  )
-                                                                ],
-                                                              ),
-                                                              const Text(
-                                                                "       View the provided grave image for more details.",
-                                                                style: TextStyle(
-                                                                    color: Color
-                                                                        .fromARGB(
-                                                                        255, 5,
-                                                                        44, 77)),
-                                                              )
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
+                                                ),
+                                                const SizedBox(width: 20),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                      color:
+                                                          const Color.fromARGB(
+                                                              255,
+                                                              203,
+                                                              232,
+                                                              255),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20)),
+                                                  height: 130,
+                                                  width: 200,
+                                                  child: Column(
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Image.asset(
+                                                            'assets/locationIcon.png',
+                                                            scale: 3,
+                                                          )
+                                                        ],
+                                                      ),
+                                                      const Text(
+                                                        "       To navigate to the grave, click the location icon on the Google map and then the direction icon at the bottom.",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    5,
+                                                                    44,
+                                                                    77)),
+                                                      )
+                                                    ],
                                                   ),
-                                                ]),
-                                              ))),
+                                                ),
+                                                const SizedBox(width: 20),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                      color:
+                                                          const Color.fromARGB(
+                                                              255,
+                                                              203,
+                                                              232,
+                                                              255),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20)),
+                                                  height: 130,
+                                                  width: 200,
+                                                  child: Column(
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Image.asset(
+                                                            'assets/imageIcon.png',
+                                                            scale: 3,
+                                                          )
+                                                        ],
+                                                      ),
+                                                      const Text(
+                                                        "       View the provided grave image for more details.",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    5,
+                                                                    44,
+                                                                    77)),
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ]),
+                                      ))),
                                     );
                                   },
                                 ),

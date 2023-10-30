@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:grapp/UI/homepage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:change_app_package_name/change_app_package_name.dart';
 import 'UI/onbording.dart';
 
 Future<void> main() async {

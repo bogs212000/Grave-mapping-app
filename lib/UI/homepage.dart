@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, duplicate_ignore
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +10,6 @@ import 'package:ionicons/ionicons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:webview_flutter/platform_interface.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../main.dart';
 import 'package:geolocator/geolocator.dart';
@@ -25,7 +24,6 @@ final TextEditingController searchController = TextEditingController();
 
 class Homepage extends StatefulWidget {
   Homepage({super.key});
-
 
   @override
   State<Homepage> createState() => _HomepageState();
@@ -252,15 +250,20 @@ class _HomepageState extends State<Homepage> {
                 ],
               ),
               onTap: () {
+                var snackBar =
+                    SnackBar(content: Text('Map change to $mapType'));
                 if (mapType == "Satellite") {
                   setState(() {
                     mapType = "Normal";
                   });
+
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
                   Navigator.of(context).pop();
                 } else if (mapType == "Normal") {
                   setState(() {
                     mapType = "Satellite";
                   });
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
                   Navigator.of(context).pop();
                 }
               },
@@ -414,7 +417,6 @@ class _HomepageState extends State<Homepage> {
                     ),
                     const SizedBox(height: 20),
                     AnimatedContainer(
-
                       duration: Duration(milliseconds: 500),
                       height: search == "" ? 40 : 50,
                       width: double.infinity,
@@ -462,7 +464,7 @@ class _HomepageState extends State<Homepage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    search == "" || search == null
+                    search == ""
                         ? SizedBox(
                             height: 200,
                             width: double.infinity,
@@ -489,7 +491,7 @@ class _HomepageState extends State<Homepage> {
                               height: 550,
                               width: double.infinity,
                               child: StreamBuilder(
-                                stream: (search != "" && search != null)
+                                stream: (search != "")
                                     ? FirebaseFirestore.instance
                                         .collection("Records")
                                         .where("Fullname",
@@ -551,10 +553,11 @@ class _HomepageState extends State<Homepage> {
                                                 padding: EdgeInsets.all(10),
                                                 child: Container(
                                                   decoration: BoxDecoration(
-                                                      color: Colors.blue,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20)),
+                                                    color: Colors.blue,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                  ),
                                                   height: 100,
                                                   width: double.infinity,
                                                 ),
@@ -571,10 +574,11 @@ class _HomepageState extends State<Homepage> {
                                             const Text(
                                               'Search now!',
                                               style: TextStyle(
-                                                  fontSize: 15,
-                                                  color: Color.fromARGB(
-                                                      255, 167, 152, 255)),
-                                            )
+                                                fontSize: 15,
+                                                color: Color.fromARGB(
+                                                    255, 167, 152, 255),
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -603,9 +607,6 @@ class _HomepageState extends State<Homepage> {
                                       String? death = data["Date of Death"];
                                       double lat = data["lat"];
                                       double long = data["long"];
-                                      final List<LatLng> _latLen = <LatLng>[
-                                        LatLng(lat, long)
-                                      ];
                                       _marker.add(
                                         Marker(
                                           markerId: const MarkerId(""),
@@ -698,52 +699,59 @@ class _HomepageState extends State<Homepage> {
                                                             false,
                                                         builder: (context) =>
                                                             Center(
-                                                                child:
-                                                                    (Container(
-                                                          height: 400,
-                                                          width:
-                                                              double.infinity,
-                                                          decoration: BoxDecoration(
+                                                          child: (Container(
+                                                            height: 400,
+                                                            width:
+                                                                double.infinity,
+                                                            decoration:
+                                                                BoxDecoration(
                                                               borderRadius:
                                                                   BorderRadius
                                                                       .circular(
                                                                           20),
                                                               border: Border.all(
-                                                                  color:
-                                                                      const Color.fromARGB(
-                                                                          255,
-                                                                          69,
-                                                                          2,
-                                                                          124)),
-                                                              image: DecorationImage(
-                                                                  image: CachedNetworkImageProvider(
-                                                                      image
-                                                                          .toString()),
-                                                                  fit: BoxFit
-                                                                      .cover)),
-                                                          child:
-                                                              Column(children: [
-                                                            Row(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .end,
+                                                                  color: const Color
+                                                                          .fromARGB(
+                                                                      255,
+                                                                      69,
+                                                                      2,
+                                                                      124)),
+                                                              image:
+                                                                  DecorationImage(
+                                                                      image:
+                                                                          CachedNetworkImageProvider(
+                                                                        image
+                                                                            .toString(),
+                                                                      ),
+                                                                      fit: BoxFit
+                                                                          .cover),
+                                                            ),
+                                                            child: Column(
                                                               children: [
-                                                                GestureDetector(
-                                                                    child: Image
-                                                                        .asset(
-                                                                      "assets/cancelIcon.png",
-                                                                      scale: 3,
-                                                                    ),
-                                                                    onTap: () {
-                                                                      navigatorKey
-                                                                          .currentState!
-                                                                          .popUntil((route) =>
-                                                                              route.isFirst);
-                                                                    })
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .end,
+                                                                  children: [
+                                                                    GestureDetector(
+                                                                        child: Image
+                                                                            .asset(
+                                                                          "assets/cancelIcon.png",
+                                                                          scale:
+                                                                              3,
+                                                                        ),
+                                                                        onTap:
+                                                                            () {
+                                                                          navigatorKey
+                                                                              .currentState!
+                                                                              .popUntil((route) => route.isFirst);
+                                                                        })
+                                                                  ],
+                                                                ),
                                                               ],
-                                                            )
-                                                          ]),
-                                                        ))),
+                                                            ),
+                                                          )),
+                                                        ),
                                                       );
                                                     },
                                                   ),
@@ -767,20 +775,23 @@ class _HomepageState extends State<Homepage> {
                                                             height: 500,
                                                             width:
                                                                 double.infinity,
-                                                            decoration: BoxDecoration(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
+                                                            decoration:
+                                                                BoxDecoration(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
                                                                             20),
-                                                                border: Border.all(
-                                                                    color: const Color
-                                                                            .fromARGB(
-                                                                        255,
-                                                                        69,
-                                                                        2,
-                                                                        124)),
-                                                                color: Colors
-                                                                    .white),
+                                                                    border:
+                                                                        Border
+                                                                            .all(
+                                                                      color: const Color
+                                                                              .fromARGB(
+                                                                          255,
+                                                                          69,
+                                                                          2,
+                                                                          124),
+                                                                    ),
+                                                                    color: Colors
+                                                                        .white),
                                                             child: Column(
                                                               children: [
                                                                 Row(
@@ -806,10 +817,12 @@ class _HomepageState extends State<Homepage> {
                                                                 const SizedBox(
                                                                     height: 5),
                                                                 Container(
-                                                                  decoration: BoxDecoration(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              20)),
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            20),
+                                                                  ),
                                                                   height: 300,
                                                                   width: double
                                                                       .infinity,
@@ -886,13 +899,13 @@ class _HomepageState extends State<Homepage> {
                                                                                 Image.asset(
                                                                                   'assets/helpIcon.png',
                                                                                   scale: 3,
-                                                                                )
+                                                                                ),
                                                                               ],
                                                                             ),
                                                                             const Text(
                                                                               "       Please make sure you have a strong internet connection to use the app properly.",
                                                                               style: TextStyle(color: Color.fromARGB(255, 5, 44, 77)),
-                                                                            )
+                                                                            ),
                                                                           ],
                                                                         ),
                                                                       ),
@@ -930,7 +943,7 @@ class _HomepageState extends State<Homepage> {
                                                                             const Text(
                                                                               "       To navigate to the grave, click the location icon on the Google map and then the direction icon at the bottom.",
                                                                               style: TextStyle(color: Color.fromARGB(255, 5, 44, 77)),
-                                                                            )
+                                                                            ),
                                                                           ],
                                                                         ),
                                                                       ),
