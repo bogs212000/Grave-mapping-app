@@ -440,6 +440,7 @@ class _HomepageState extends State<Homepage> {
                                   onTap: () {
                                     setState(() {
                                       searchController.clear();
+                                      search = "";
                                     });
                                   },
                                   child: Icon(
