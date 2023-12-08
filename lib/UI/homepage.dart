@@ -16,6 +16,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shimmer/shimmer.dart';
 
+
 bool animate = false;
 double? la, lo;
 String? name;
@@ -30,16 +31,19 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
+
   bool servicestatus = false;
   bool haspermission = false;
   late LocationPermission permission;
-  late Position position;
+  Position? _currentPosition;
   late double long, lat;
   final List<Marker> _marker = <Marker>[];
   String email = 'maricelatienza405@gmail.com';
   String subject = 'User Feedback';
   String body = 'Hi!';
   bool? maintenance;
+  String? termsAndConditions;
+  String? feedback;
   double? iconSize;
   double optionSizeH = 100;
   double optionSizeW = 150;
@@ -52,7 +56,6 @@ class _HomepageState extends State<Homepage> {
     checkGps();
     _fetch();
   }
-
   _fetch() async {
     await FirebaseFirestore.instance
         .collection('App settings')
@@ -60,12 +63,14 @@ class _HomepageState extends State<Homepage> {
         .get()
         .then((ds) {
       maintenance = ds.data()!['maintenance'];
+      termsAndConditions = ds.data()!['terms and conditions'];
+      feedback = ds.data()!['feedback'];
     }).catchError((e) {
       print(e);
     });
   }
-
   checkGps() async {
+
     servicestatus = await Geolocator.isLocationServiceEnabled();
     if (servicestatus) {
       permission = await Geolocator.checkPermission();
@@ -123,7 +128,7 @@ class _HomepageState extends State<Homepage> {
     AlertDialog alert = AlertDialog(
       title: Text("Feedback"),
       content: Text(
-          "Share your feedback about your Grapp App experience; it helps us improve our services."),
+         "Share your feedback about your Grave Mapping App experience; it helps us to improve our service."),
       actions: [
         cancelButton,
         continueButton,
@@ -251,7 +256,7 @@ class _HomepageState extends State<Homepage> {
               ),
               onTap: () {
                 var snackBar =
-                    SnackBar(content: Text('Map change to $mapType'));
+                    SnackBar(content: Text('Map type changed'));
                 if (mapType == "Satellite") {
                   setState(() {
                     mapType = "Normal";
@@ -814,57 +819,80 @@ class _HomepageState extends State<Homepage> {
                                                                         }),
                                                                   ],
                                                                 ),
-                                                                const SizedBox(
+                                                                SizedBox(
                                                                     height: 5),
-                                                                Container(
-                                                                  decoration:
-                                                                      BoxDecoration(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            20),
-                                                                  ),
-                                                                  height: 300,
-                                                                  width: double
-                                                                      .infinity,
-                                                                  child:
-                                                                      GoogleMap(
-                                                                    initialCameraPosition: CameraPosition(
-                                                                        target: LatLng(
-                                                                            lat,
-                                                                            long),
-                                                                        zoom:
-                                                                            30),
-                                                                    markers: (long !=
-                                                                            null)
-                                                                        ? {
-                                                                            Marker(
-                                                                              markerId: const MarkerId('graveMarker'),
-                                                                              position: LatLng(lat, long),
-                                                                              infoWindow: InfoWindow(title: fullname),
-                                                                            )
-                                                                          }
-                                                                        : Set(),
-                                                                    zoomControlsEnabled:
-                                                                        true,
-                                                                    zoomGesturesEnabled:
-                                                                        true,
-                                                                    tiltGesturesEnabled:
-                                                                        true,
-                                                                    scrollGesturesEnabled:
-                                                                        true,
-                                                                    rotateGesturesEnabled:
-                                                                        true,
-                                                                    mapType: mapType ==
-                                                                            "Satellite"
-                                                                        ? MapType
-                                                                            .satellite
-                                                                        : MapType
-                                                                            .normal,
-                                                                    trafficEnabled:
-                                                                        true,
-                                                                  ),
+                                                                Stack(
+                                                                  children: [
+                                                                    Container(
+                                                                      decoration:
+                                                                          BoxDecoration(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(20),
+                                                                      ),
+                                                                      height:
+                                                                          300,
+                                                                      width: double
+                                                                          .infinity,
+                                                                      child:
+                                                                          GoogleMap(
+                                                                        initialCameraPosition: CameraPosition(
+                                                                            target: LatLng(lat,
+                                                                                long),
+                                                                            zoom:
+                                                                                30),
+                                                                        markers: (long !=
+                                                                                null)
+                                                                            ? {
+                                                                                Marker(
+                                                                                  markerId: const MarkerId('graveMarker'),
+                                                                                  position: LatLng(lat, long),
+                                                                                  infoWindow: InfoWindow(title: fullname),
+                                                                                )
+                                                                              }
+                                                                            : Set(),
+                                                                        zoomControlsEnabled:
+                                                                            true,
+                                                                        zoomGesturesEnabled:
+                                                                            true,
+                                                                        tiltGesturesEnabled:
+                                                                            true,
+                                                                        scrollGesturesEnabled:
+                                                                            true,
+                                                                        rotateGesturesEnabled:
+                                                                            true,
+                                                                        mapType: mapType ==
+                                                                                "Satellite"
+                                                                            ? MapType.satellite
+                                                                            : MapType.normal,
+                                                                        trafficEnabled:
+                                                                            true,
+                                                                      ),
+                                                                    ),
+                                                                    // GestureDetector(
+                                                                    //   onTap:
+                                                                    //       () async {
+                                                                    //         final Uri _url = Uri.parse('https://www.google.com/maps/dir//$lat,$long/17z');
+                                                                    //         if (!await launchUrl(_url)) {
+                                                                    //         throw Exception('Could not launch $_url');
+                                                                    //         }
+                                                                    //       },
+                                                                    //   child:
+                                                                    //       Row(
+                                                                    //     mainAxisAlignment:
+                                                                    //         MainAxisAlignment.end,
+                                                                    //     children: [
+                                                                    //       Padding(
+                                                                    //         padding:
+                                                                    //             EdgeInsets.all(5),
+                                                                    //         child:
+                                                                    //             Icon(Icons.directions, size: 30, color: Colors.blue),
+                                                                    //       ),
+                                                                    //     ],
+                                                                    //   ),
+                                                                    // )
+                                                                  ],
                                                                 ),
-                                                                const SizedBox(
+                                                                SizedBox(
                                                                   height: 10,
                                                                 ),
                                                                 SingleChildScrollView(
@@ -1058,11 +1086,6 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  Future<String> _fetchPage() async {
-    // Simulating a delay to fetch the page
-    await Future.delayed(Duration(seconds: 2));
-    return "https://en.wikipedia.org/";
-  }
 
   void _showTermsAndConditions(BuildContext context) {
     showDialog(
@@ -1108,8 +1131,7 @@ class _HomepageState extends State<Homepage> {
                         );
                       } else {
                         return WebView(
-                          initialUrl:
-                              'https://www.freeprivacypolicy.com/live/075d8ff8-1760-49b7-878d-d94ee0aac06d',
+                          initialUrl: termsAndConditions ?? 'https://www.freeprivacypolicy.com/live/075d8ff8-1760-49b7-878d-d94ee0aac06d',
                           // Set the URL you want to display
                           javascriptMode: JavascriptMode.unrestricted,
                           onWebResourceError:
