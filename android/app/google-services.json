@@ -14,7 +14,7 @@
       },
       "oauth_client": [
         {
-          "client_id": "88514516012-g3nudqkoj7tpuvugg14bvub9e48p2i0q.apps.googleusercontent.com",
+          "client_id": "88514516012-ogjdcq348e9v48tg37t0jb62rj21t52d.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -43,7 +43,36 @@
       },
       "oauth_client": [
         {
-          "client_id": "88514516012-g3nudqkoj7tpuvugg14bvub9e48p2i0q.apps.googleusercontent.com",
+          "client_id": "88514516012-ogjdcq348e9v48tg37t0jb62rj21t52d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLAyqqXxlbb_7HdPOgg-kYbbeK5vPW-ds"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "88514516012-g3nudqkoj7tpuvugg14bvub9e48p2i0q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:88514516012:android:8455804f8fd0872284ed89",
+        "android_client_info": {
+          "package_name": "com.example.grave_location_uploader"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "88514516012-ogjdcq348e9v48tg37t0jb62rj21t52d.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -72,7 +101,7 @@
       },
       "oauth_client": [
         {
-          "client_id": "88514516012-g3nudqkoj7tpuvugg14bvub9e48p2i0q.apps.googleusercontent.com",
+          "client_id": "88514516012-ogjdcq348e9v48tg37t0jb62rj21t52d.apps.googleusercontent.com",
           "client_type": 3
         }
       ],

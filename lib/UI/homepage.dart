@@ -1,21 +1,28 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, duplicate_ignore
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:grapp/UI/List.dart';
 import 'package:grapp/UI/onbording.dart';
 import 'package:grapp/UI/usersGuide_onboarding.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import '../main.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
+import '../main.dart';
+import 'const/const.dart';
+import 'function/fetch.dart';
 
 bool animate = false;
 double? la, lo;
@@ -31,46 +38,112 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-
   bool servicestatus = false;
   bool haspermission = false;
   late LocationPermission permission;
   Position? _currentPosition;
-  late double long, lat;
+  late final double long;
+  late final double lat;
   final List<Marker> _marker = <Marker>[];
+  late List<LatLng> polylineCoordinates = [];
   String email = 'maricelatienza405@gmail.com';
   String subject = 'User Feedback';
   String body = 'Hi!';
-  bool? maintenance;
-  String? termsAndConditions;
-  String? feedback;
   double? iconSize;
   double optionSizeH = 100;
   double optionSizeW = 150;
   double searchSize = 150;
   String search = "";
+  String? address;
+  late Position position;
+  double? userLat;
+  double? userlong;
 
   @override
   void initState() {
     super.initState();
+    _getPolylineCoordinates();
     checkGps();
-    _fetch();
+    fetch();
   }
-  _fetch() async {
-    await FirebaseFirestore.instance
-        .collection('App settings')
-        .doc("Maintenance")
-        .get()
-        .then((ds) {
-      maintenance = ds.data()!['maintenance'];
-      termsAndConditions = ds.data()!['terms and conditions'];
-      feedback = ds.data()!['feedback'];
-    }).catchError((e) {
-      print(e);
+
+  getLocation() async {
+    position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best);
+    print(position.longitude); //Output: 80.24599079
+    print(position.latitude); //Output: 29.6593457
+
+    userlong = position.longitude as double;
+    userLat = position.latitude as double;
+
+    setState(() {
+      //refresh UI
+    });
+
+    LocationSettings locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.best, //accuracy of the location data
+      distanceFilter: 50, //minimum distance (measured in meters) a
+      //device must move horizontally before an update event is generated;
+    );
+
+    StreamSubscription<Position> positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings)
+            .listen((Position position) {
+      print(position.longitude); //Output: 80.24599079
+      print(position.latitude); //Output: 29.6593457
+
+      long = position.longitude as double;
+      lat = position.latitude as double;
+      lat as double;
+      long as double;
+    });
+    List<Placemark> newPlace =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+    setState(() {
+      Placemark placeMark = newPlace[0];
+      String? name = placeMark.name.toString();
+      String? subLocality = placeMark.subLocality.toString();
+      String? locality = placeMark.locality.toString();
+      String? administrativeArea = placeMark.administrativeArea.toString();
+      String? postalCode = placeMark.postalCode.toString();
+      String? baranggay = placeMark.isoCountryCode.toString();
+      address =
+          "${name}, ${subLocality}, ${locality}, ${administrativeArea}, ${postalCode}";
     });
   }
-  checkGps() async {
 
+  Future<void> _getPolylineCoordinates() async {
+    try {
+      const apiKey =
+          'AIzaSyCUegYnMbLnRL8dpNiQpRZoATOc6e-W3GA'; // Replace with your actual API key
+      final start = '${userLat},${userlong}';
+      final end = '$lat,$long';
+
+      final url =
+          'https://maps.googleapis.com/maps/api/directions/json?origin=$start&destination=$end&key=$apiKey';
+
+      Response response = await Dio().get(url);
+
+      if (response.statusCode == 200) {
+        List<PointLatLng> result = PolylinePoints().decodePolyline(
+            response.data['routes'][0]['overview_polyline']['points']);
+        List<LatLng> points = result
+            .map((PointLatLng point) => LatLng(point.latitude, point.longitude))
+            .toList();
+
+        setState(() {
+          polylineCoordinates = points;
+        });
+      } else {
+        throw Exception('Failed to load polyline coordinates');
+      }
+    } catch (e) {
+      print('Error fetching polyline coordinates: $e');
+    }
+  }
+
+
+  checkGps() async {
     servicestatus = await Geolocator.isLocationServiceEnabled();
     if (servicestatus) {
       permission = await Geolocator.checkPermission();
@@ -128,7 +201,7 @@ class _HomepageState extends State<Homepage> {
     AlertDialog alert = AlertDialog(
       title: Text("Feedback"),
       content: Text(
-         "Share your feedback about your Grave Mapping App experience; it helps us to improve our service."),
+          "Share your feedback about your Grave Mapping App experience; it helps us to improve our service."),
       actions: [
         cancelButton,
         continueButton,
@@ -148,39 +221,20 @@ class _HomepageState extends State<Homepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: Drawer(
-        backgroundColor: const Color.fromARGB(255, 5, 44, 77),
+        backgroundColor: Colors.white,
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             SizedBox(height: 40),
-            Padding(
-                padding: EdgeInsets.only(left: 20),
-                child: Column(
-                  children: [
-                    Text(
-                      'Grapp App',
-                      style: GoogleFonts.righteous(
-                          fontSize: 30, color: Colors.white),
-                    ),
-                    const Text('Version 1.0.0',
-                        style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.normal,
-                            color: Color.fromARGB(255, 83, 125, 214))),
-                  ],
-                )),
-            ListTile(
-              contentPadding: EdgeInsets.only(left: 15),
-              leading: Image.asset(
-                "assets/drawer.png",
-                scale: 2.8,
-              ),
-              title: Row(
+            GestureDetector(
+              onTap: () {},
+              child: Row(
                 children: [
+                  Image.asset('assets/cemetery.png',
+                      scale: 3, color: Colors.blue[900]),
                   const Text(
-                    'Welcome',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.white),
+                    'Grave Mapping',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   Spacer(),
                   Column(
@@ -193,54 +247,14 @@ class _HomepageState extends State<Homepage> {
                   )
                 ],
               ),
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => Onbording(),
-                  ),
-                );
-              },
             ),
+
             ListTile(
               contentPadding: EdgeInsets.only(left: 20),
-              leading: const Icon(
-                Icons.star,
-                color: Color.fromARGB(255, 198, 212, 1),
-              ),
-              title: Row(
-                children: const [
-                  Text('Rate us',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.white)),
-                  Spacer(),
-                  Padding(
-                    padding: EdgeInsets.only(right: 20),
-                    child: Text(
-                      "Coming soon!",
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey),
-                    ),
-                  ),
-                ],
-              ),
-              onTap: () {},
-            ),
-            ListTile(
-              contentPadding: EdgeInsets.only(left: 20),
-              leading: Icon(
-                Icons.map,
-                color: Colors.white,
-              ),
+              leading: Icon(Icons.map, color: Colors.blue[800]),
               title: Row(
                 children: [
-                  Text(
-                    'Map type',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
+                  Text('Map type'),
                   Spacer(),
                   Padding(
                     padding: EdgeInsets.only(right: 20),
@@ -255,8 +269,7 @@ class _HomepageState extends State<Homepage> {
                 ],
               ),
               onTap: () {
-                var snackBar =
-                    SnackBar(content: Text('Map type changed'));
+                var snackBar = SnackBar(content: Text('Map type changed'));
                 if (mapType == "Satellite") {
                   setState(() {
                     mapType = "Normal";
@@ -275,16 +288,11 @@ class _HomepageState extends State<Homepage> {
             ),
             ListTile(
               contentPadding: EdgeInsets.only(left: 20),
-              leading: Icon(
-                Icons.book,
-                color: Colors.white,
-              ),
+              leading: Icon(Icons.book, color: Colors.blue[800]),
               title: Row(
                 children: [
                   Text(
                     'Terms and Conditions',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   Spacer(),
                 ],
@@ -292,6 +300,71 @@ class _HomepageState extends State<Homepage> {
               onTap: () {
                 Navigator.of(context).pop();
                 _showTermsAndConditions(context);
+              },
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.only(left: 20),
+              leading: const Icon(
+                Icons.star,
+                color: Colors.yellow,
+              ),
+              title: Row(
+                children: const [
+                  Text('Rate us'),
+                  Spacer(),
+                  Padding(
+                    padding: EdgeInsets.only(right: 20),
+                    child: Text(
+                      "Coming soon!",
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey),
+                    ),
+                  ),
+                ],
+              ),
+              onTap: () {},
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.only(left: 20),
+              leading: const Icon(
+                Icons.logout,
+                color: Colors.red,
+              ),
+              title: Row(
+                children: const [
+                  Text('Sign out'),
+                  Spacer(),
+                ],
+              ),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Sign out?'),
+                      content: Text(
+                          'Are you sure you want to Sign out?'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+
+                            Navigator.pop(context);
+                          },
+                          child: Text('cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            await FirebaseAuth.instance.signOut();
+                            Navigator.pop(context);
+                          },
+                          child: Text('ok'),
+                        ),
+                      ],
+                    );
+                  },
+                );
               },
             ),
             // ListTile(
@@ -325,19 +398,18 @@ class _HomepageState extends State<Homepage> {
         ),
       ),
       appBar: AppBar(
-        foregroundColor: Colors.white,
-        centerTitle: true,
+        foregroundColor: Color.fromARGB(255, 5, 44, 77),
         title: Text(
           'Grave Mapping',
-          style: GoogleFonts.righteous(),
+          style: GoogleFonts.righteous(color: Color.fromARGB(255, 5, 44, 77),),
         ),
-        backgroundColor: const Color.fromARGB(255, 5, 44, 77),
+        backgroundColor: Colors.white,
         elevation: 0,
         // ignore: prefer_const_literals_to_create_immutables
         actions: [
           GestureDetector(
             child: const CircleAvatar(
-              backgroundColor: Color.fromARGB(255, 5, 44, 77),
+              backgroundColor: Colors.white,
               child: Center(
                 child: Icon(
                   Ionicons.help_circle_outline,
@@ -358,13 +430,14 @@ class _HomepageState extends State<Homepage> {
       ),
       body: maintenance != true
           ? Container(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 1),
-              decoration:
-                  const BoxDecoration(color: Color.fromARGB(255, 5, 44, 77)),
+              padding: const EdgeInsets.fromLTRB(15, 0, 15, 1),
+              decoration: const BoxDecoration(color: Colors.white),
               height: double.infinity,
               width: double.infinity,
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: search == ""
+                    ? BouncingScrollPhysics()
+                    : NeverScrollableScrollPhysics(),
                 child: Column(
                   children: [
                     SingleChildScrollView(
@@ -376,17 +449,36 @@ class _HomepageState extends State<Homepage> {
                             child: AnimatedContainer(
                               curve: Curves.easeIn,
                               decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: Colors.blue[50],
                                   borderRadius: BorderRadius.circular(20)),
-                              height:
-                                  search == "" ? optionSizeH : optionSizeH = 50,
+                              height: search == ""
+                                  ? optionSizeH = 100
+                                  : optionSizeW = 0,
                               width: search == ""
-                                  ? optionSizeW
-                                  : optionSizeH = 100,
+                                  ? optionSizeH = 150
+                                  : optionSizeW = 0,
                               duration: const Duration(milliseconds: 300),
                               child: AnimatedContainer(
-                                  duration: Duration(milliseconds: 300),
-                                  child: Image.asset("assets/listIcon.png")),
+                                duration: Duration(milliseconds: 300),
+                                child: ShaderMask(
+                                  shaderCallback: (Rect bounds) {
+                                    return LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.blue.shade100,
+                                        Colors.blue.shade800,
+                                      ],
+                                    ).createShader(bounds);
+                                  },
+                                  blendMode: BlendMode.srcATop,
+                                  child: Image.asset(
+                                    "assets/cemetery.png",
+                                    width: 200,
+                                    height: 200,
+                                  ),
+                                ),
+                              ),
                             ),
                             onTap: () {
                               setState(() {
@@ -401,17 +493,35 @@ class _HomepageState extends State<Homepage> {
                             child: AnimatedContainer(
                               duration: Duration(milliseconds: 400),
                               decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: Colors.blue[50],
                                   borderRadius: BorderRadius.circular(20)),
-                              height:
-                                  search == "" ? optionSizeH : optionSizeH = 50,
+                              height: search == ""
+                                  ? optionSizeH = 100
+                                  : optionSizeH = 0,
                               width: search == ""
-                                  ? optionSizeW
-                                  : optionSizeH = 100,
+                                  ? optionSizeH = 150
+                                  : optionSizeW = 0,
                               child: AnimatedContainer(
-                                  duration: Duration(milliseconds: 400),
-                                  child:
-                                      Image.asset("assets/feedbackIcon.png")),
+                                duration: Duration(milliseconds: 400),
+                                child: ShaderMask(
+                                  shaderCallback: (Rect bounds) {
+                                    return LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.blue.shade100,
+                                        Colors.blue.shade800,
+                                      ],
+                                    ).createShader(bounds);
+                                  },
+                                  blendMode: BlendMode.srcATop,
+                                  child: Image.asset(
+                                    "assets/feedbackIcon.png",
+                                    width: 200,
+                                    height: 200,
+                                  ),
+                                ),
+                              ),
                             ),
                             onTap: () async {
                               showAlertDialog(context);
@@ -436,13 +546,10 @@ class _HomepageState extends State<Homepage> {
                         style: const TextStyle(fontSize: 15),
                         decoration: InputDecoration(
                           contentPadding: const EdgeInsets.all(10),
-                          focusColor: Colors.white,
+                          focusColor: Colors.blue[200],
                           hintText: "Search...",
                           suffixIcon: search == ""
-                              ? Image.asset(
-                                  'assets/searchIcon.png',
-                                  scale: 3,
-                                )
+                              ? Icon(Icons.search)
                               : GestureDetector(
                                   onTap: () {
                                     setState(() {
@@ -456,7 +563,7 @@ class _HomepageState extends State<Homepage> {
                                   ),
                                 ),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: Colors.blue[50],
                           focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
                               borderSide:
@@ -476,14 +583,38 @@ class _HomepageState extends State<Homepage> {
                             child: Center(
                               child: Column(
                                 children: [
-                                  Image.asset('assets/ghostIcon.png'),
-                                  const Text(
-                                    'Search now!',
-                                    style: TextStyle(
-                                        fontSize: 15,
-                                        color:
-                                            Color.fromARGB(255, 167, 152, 255)),
-                                  )
+                                  Container(
+                                    padding: const EdgeInsets.only(
+                                        top: 10,
+                                        left: 20,
+                                        right: 20,
+                                        bottom: 20),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue[50],
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    width: double.infinity,
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Image.asset(
+                                                'assets/icons8-place-marker-96.png',
+                                                scale: 3),
+                                            SizedBox(width: 5),
+                                            Text('Search Now!')
+                                          ],
+                                        ),
+                                        SizedBox(height: 5),
+                                        const Text(
+                                          "       Please make sure you have a strong internet connection to use the app properly.",
+                                          style: TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 5, 44, 77)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -493,7 +624,7 @@ class _HomepageState extends State<Homepage> {
                             child: Container(
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(20)),
-                              height: 550,
+                              height: 600,
                               width: double.infinity,
                               child: StreamBuilder(
                                 stream: (search != "")
@@ -503,7 +634,7 @@ class _HomepageState extends State<Homepage> {
                                             isGreaterThanOrEqualTo: search)
                                         .snapshots()
                                     : FirebaseFirestore.instance
-                                        .collection('Recors')
+                                        .collection('Records')
                                         .snapshots(),
                                 builder: (BuildContext context,
                                     AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -527,8 +658,7 @@ class _HomepageState extends State<Homepage> {
                                       itemCount: 5,
                                       itemBuilder: (context, index) =>
                                           Shimmer.fromColors(
-                                              baseColor: const Color.fromARGB(
-                                                  255, 5, 44, 77),
+                                              baseColor: Colors.blue.shade50,
                                               highlightColor: Colors.white,
                                               child: Padding(
                                                 padding: EdgeInsets.all(10),
@@ -551,8 +681,7 @@ class _HomepageState extends State<Homepage> {
                                       itemCount: 5,
                                       itemBuilder: (context, index) =>
                                           Shimmer.fromColors(
-                                              baseColor: const Color.fromARGB(
-                                                  255, 5, 44, 77),
+                                              baseColor: Colors.blue.shade50,
                                               highlightColor: Colors.white,
                                               child: Padding(
                                                 padding: EdgeInsets.all(10),
@@ -612,6 +741,25 @@ class _HomepageState extends State<Homepage> {
                                       String? death = data["Date of Death"];
                                       double lat = data["lat"];
                                       double long = data["long"];
+
+                                      // bool isMatch = search.isNotEmpty &&
+                                      //     fullname != null &&
+                                      //     fullname
+                                      //         .toLowerCase()
+                                      //         .contains(search.toLowerCase());
+
+                                      // TextSpan nameSpan = TextSpan(
+                                      //   text: fullname ?? '',
+                                      //   style: GoogleFonts.poppins(
+                                      //     fontSize: 20,
+                                      //     fontWeight: FontWeight.bold,
+                                      //     backgroundColor: isMatch
+                                      //         ? Colors.yellow.withOpacity(
+                                      //             0.3) // Highlight color for the matched text
+                                      //         : null,
+                                      //   ),
+                                      // );
+
                                       _marker.add(
                                         Marker(
                                           markerId: const MarkerId(""),
@@ -628,7 +776,7 @@ class _HomepageState extends State<Homepage> {
                                           borderRadius:
                                               BorderRadius.circular(10),
                                         ),
-                                        color: Colors.white,
+                                        color: Colors.blue.shade50,
                                         child: Container(
                                           padding: const EdgeInsets.all(10),
                                           child: Column(
@@ -638,6 +786,7 @@ class _HomepageState extends State<Homepage> {
                                                   Image.asset(
                                                     "assets/graveIcon.png",
                                                     scale: 2.5,
+                                                    color: Colors.blue.shade900,
                                                   ),
                                                   const SizedBox(width: 5),
                                                   Column(
@@ -680,6 +829,11 @@ class _HomepageState extends State<Homepage> {
                                                   ),
                                                 ],
                                               ),
+                                              // RichText(
+                                              //   text: TextSpan(
+                                              //     children: [nameSpan],
+                                              //   ),
+                                              // ),
                                               Text(
                                                 data['Fullname'],
                                                 style: GoogleFonts.poppins(
@@ -696,6 +850,8 @@ class _HomepageState extends State<Homepage> {
                                                     child: Image.asset(
                                                       "assets/imageIcon.png",
                                                       scale: 2.4,
+                                                      color:
+                                                          Colors.blue.shade900,
                                                     ),
                                                     onTap: () {
                                                       showDialog(
@@ -710,27 +866,25 @@ class _HomepageState extends State<Homepage> {
                                                                 double.infinity,
                                                             decoration:
                                                                 BoxDecoration(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          20),
-                                                              border: Border.all(
-                                                                  color: const Color
-                                                                          .fromARGB(
-                                                                      255,
-                                                                      69,
-                                                                      2,
-                                                                      124)),
-                                                              image:
-                                                                  DecorationImage(
-                                                                      image:
-                                                                          CachedNetworkImageProvider(
-                                                                        image
-                                                                            .toString(),
-                                                                      ),
-                                                                      fit: BoxFit
-                                                                          .cover),
-                                                            ),
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            20),
+                                                                    border:
+                                                                        Border
+                                                                            .all(
+                                                                      color: const Color
+                                                                              .fromARGB(
+                                                                          255,
+                                                                          69,
+                                                                          2,
+                                                                          124),
+                                                                    ),
+                                                                    image: DecorationImage(
+                                                                        image: CachedNetworkImageProvider(
+                                                                          image
+                                                                              .toString(),
+                                                                        ),
+                                                                        fit: BoxFit.cover)),
                                                             child: Column(
                                                               children: [
                                                                 Row(
@@ -742,6 +896,9 @@ class _HomepageState extends State<Homepage> {
                                                                         child: Image
                                                                             .asset(
                                                                           "assets/cancelIcon.png",
+                                                                          color: Colors
+                                                                              .blue
+                                                                              .shade900,
                                                                           scale:
                                                                               3,
                                                                         ),
@@ -765,8 +922,11 @@ class _HomepageState extends State<Homepage> {
                                                     child: Image.asset(
                                                       "assets/locationIcon.png",
                                                       scale: 2.4,
+                                                      color:
+                                                          Colors.blue.shade900,
                                                     ),
                                                     onTap: () {
+                                                      _getPolylineCoordinates();
                                                       showDialog(
                                                         context: context,
                                                         barrierDismissible:
@@ -858,6 +1018,8 @@ class _HomepageState extends State<Homepage> {
                                                                             true,
                                                                         scrollGesturesEnabled:
                                                                             true,
+                                                                        myLocationEnabled:
+                                                                            true,
                                                                         rotateGesturesEnabled:
                                                                             true,
                                                                         mapType: mapType ==
@@ -866,6 +1028,18 @@ class _HomepageState extends State<Homepage> {
                                                                             : MapType.normal,
                                                                         trafficEnabled:
                                                                             true,
+                                                                        polylines: {
+                                                                          Polyline(
+                                                                            polylineId:
+                                                                                PolylineId('polyline_id'),
+                                                                            color:
+                                                                                Colors.blue,
+                                                                            width:
+                                                                                5,
+                                                                            points:
+                                                                                polylineCoordinates,
+                                                                          ),
+                                                                        },
                                                                       ),
                                                                     ),
                                                                     // GestureDetector(
@@ -1086,7 +1260,6 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-
   void _showTermsAndConditions(BuildContext context) {
     showDialog(
       context: context,
@@ -1131,7 +1304,8 @@ class _HomepageState extends State<Homepage> {
                         );
                       } else {
                         return WebView(
-                          initialUrl: termsAndConditions ?? 'https://www.freeprivacypolicy.com/live/075d8ff8-1760-49b7-878d-d94ee0aac06d',
+                          initialUrl: termsAndConditions ??
+                              'https://www.freeprivacypolicy.com/live/e7a77442-c30d-4e94-a27c-4bfda170cba2',
                           // Set the URL you want to display
                           javascriptMode: JavascriptMode.unrestricted,
                           onWebResourceError:

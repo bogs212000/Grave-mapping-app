@@ -3,9 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:grapp/UI/homepage.dart';
 import 'package:lottie/lottie.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'auth/auth_wrapper.dart';
 import 'content_model.dart';
 
 class Onbording extends StatefulWidget {
@@ -114,14 +114,10 @@ class _OnbordingState extends State<Onbording> {
                   currentIndex == contents.length - 1 ? "Continue" : "Next"),
               onPressed: () async {
                 if (currentIndex == contents.length - 1) {
-                  final prefs = await SharedPreferences.getInstance();
-                  prefs.setBool('showHome', true);
-                  // ignore: use_build_context_synchronously
-
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => Homepage(),
+                      builder: (_) => AuthWrapper(),
                     ),
                   );
                 }

@@ -36,25 +36,21 @@ class _ListPageState extends State<ListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: const Color.fromARGB(255, 5, 44, 77),
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          foregroundColor: Colors.white,
+          foregroundColor: Colors.blue[200],
           title: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+
             children: [
               const Text(
                 "Sort by: ",
-                style: TextStyle(color: Colors.white, fontSize: 15),
+                style: TextStyle(fontSize: 15),
               ),
               DropdownButton<String>(
-                dropdownColor: const Color.fromARGB(255, 5, 44, 77),
+                dropdownColor: Colors.blue[100],
                 value: dropdownValue,
-                icon: const Icon(
-                  Icons.sort,
-                  color: Colors.white,
-                ),
-                elevation: 16,
-                style: const TextStyle(color: Colors.white),
+                icon: const Icon(Icons.sort),
+                elevation: 15,
                 underline: Container(
                   height: 2,
                   color: Colors.white,
@@ -86,6 +82,7 @@ class _ListPageState extends State<ListPage> {
                 }).toList(),
               ),
               const SizedBox(width: 5),
+              Spacer(),
               AnimatedContainer(
                 duration: Duration(milliseconds: 300),
                 height: 40,
@@ -101,13 +98,10 @@ class _ListPageState extends State<ListPage> {
                   style: const TextStyle(fontSize: 15),
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.all(10),
-                    focusColor: Colors.white,
+                    focusColor: Colors.blue.shade50,
                     hintText: "Search...",
                     suffixIcon: search == ""
-                        ? Image.asset(
-                            'assets/searchIcon.png',
-                            scale: 3,
-                          )
+                        ? Icon(Icons.search)
                         : GestureDetector(
                             onTap: () {
                               search2Controller.clear();
@@ -121,7 +115,7 @@ class _ListPageState extends State<ListPage> {
                             ),
                           ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor:Colors.blue.shade50,
                     focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(40),
                         borderSide: const BorderSide(color: Colors.white)),
@@ -134,9 +128,8 @@ class _ListPageState extends State<ListPage> {
               )
             ],
           ),
-          backgroundColor: const Color.fromARGB(255, 5, 44, 77),
+          backgroundColor: Colors.white,
           elevation: 0,
-          actions: [],
         ),
         body: StreamBuilder(
           stream: (search != "")
@@ -175,7 +168,7 @@ class _ListPageState extends State<ListPage> {
               return ListView.builder(
                 itemCount: 10,
                 itemBuilder: (context, index) => Shimmer.fromColors(
-                    baseColor: Color.fromARGB(255, 5, 44, 77),
+                    baseColor: Colors.blue.shade50,
                     highlightColor: Colors.white,
                     child: Padding(
                       padding: EdgeInsets.all(10),
@@ -217,7 +210,7 @@ class _ListPageState extends State<ListPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      color: Colors.white,
+                      color: Colors.blue.shade50,
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         child: Column(
@@ -226,7 +219,7 @@ class _ListPageState extends State<ListPage> {
                               children: [
                                 Image.asset(
                                   "assets/graveIcon.png",
-                                  scale: 2.5,
+                                  scale: 2.5, color: Colors.blue.shade900,
                                 ),
                                 const SizedBox(width: 5),
                                 Column(
@@ -269,7 +262,7 @@ class _ListPageState extends State<ListPage> {
                                 GestureDetector(
                                   child: Image.asset(
                                     "assets/imageIcon.png",
-                                    scale: 2.4,
+                                    scale: 2.4, color: Colors.blue.shade900,
                                   ),
                                   onTap: () {
                                     showDialog(
@@ -298,7 +291,7 @@ class _ListPageState extends State<ListPage> {
                                               GestureDetector(
                                                   child: Image.asset(
                                                     "assets/cancelIcon.png",
-                                                    scale: 3,
+                                                    scale: 3, color: Colors.blue.shade900,
                                                   ),
                                                   onTap: () {
                                                     Navigator.of(context).pop();
@@ -314,7 +307,7 @@ class _ListPageState extends State<ListPage> {
                                 GestureDetector(
                                   child: Image.asset(
                                     "assets/locationIcon.png",
-                                    scale: 2.4,
+                                    scale: 2.4, color: Colors.blue.shade900,
                                   ),
                                   onTap: () {
                                     showDialog(

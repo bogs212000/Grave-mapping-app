@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:grapp/UI/homepage.dart';
+import 'package:grapp/UI/auth/forgot.pass.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'UI/auth/auth_wrapper.dart';
+import 'UI/auth/sign_up.dart';
 import 'UI/onbording.dart';
+import 'UI/terms.conditions/terms.conditions.dart';
+import 'UI/terms.conditions/terms.conditions.front.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,18 +29,14 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Grave Mapping',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: showHome ? Homepage() : Onbording(),
+      routes: {
+        '/signup': (context) => SignUpPage(),
+        '/forgotpass': (context) => ForgotPass(),
+        '/terms_and_conditions': (context) => TermsAndConditions(),
+      },
+      home: showHome ? AuthWrapper() : TermsAndConditionsFront(),
     );
   }
 }
