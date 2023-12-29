@@ -14,6 +14,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:grapp/UI/List.dart';
 import 'package:grapp/UI/onbording.dart';
+import 'package:grapp/UI/showdata/show.dart';
+import 'package:grapp/UI/showdata/show.image.dart';
 import 'package:grapp/UI/usersGuide_onboarding.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:shimmer/shimmer.dart';
@@ -23,6 +25,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../main.dart';
 import 'const/const.dart';
 import 'function/fetch.dart';
+import 'auth/auth_wrapper.dart';
 
 bool animate = false;
 double? la, lo;
@@ -62,7 +65,6 @@ class _HomepageState extends State<Homepage> {
   @override
   void initState() {
     super.initState();
-    _getPolylineCoordinates();
     checkGps();
     fetch();
   }
@@ -141,7 +143,6 @@ class _HomepageState extends State<Homepage> {
       print('Error fetching polyline coordinates: $e');
     }
   }
-
 
   checkGps() async {
     servicestatus = await Geolocator.isLocationServiceEnabled();
@@ -248,7 +249,6 @@ class _HomepageState extends State<Homepage> {
                 ],
               ),
             ),
-
             ListTile(
               contentPadding: EdgeInsets.only(left: 20),
               leading: Icon(Icons.map, color: Colors.blue[800]),
@@ -344,12 +344,10 @@ class _HomepageState extends State<Homepage> {
                   builder: (BuildContext context) {
                     return AlertDialog(
                       title: const Text('Sign out?'),
-                      content: Text(
-                          'Are you sure you want to Sign out?'),
+                      content: Text('Are you sure you want to Sign out?'),
                       actions: <Widget>[
                         TextButton(
                           onPressed: () {
-
                             Navigator.pop(context);
                           },
                           child: Text('cancel'),
@@ -358,6 +356,12 @@ class _HomepageState extends State<Homepage> {
                           onPressed: () async {
                             await FirebaseAuth.instance.signOut();
                             Navigator.pop(context);
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AuthWrapper(),
+                              ),
+                            );
                           },
                           child: Text('ok'),
                         ),
@@ -367,33 +371,6 @@ class _HomepageState extends State<Homepage> {
                 );
               },
             ),
-            // ListTile(
-            //   contentPadding: EdgeInsets.only(left: 20),
-            //   leading: Icon(
-            //     Icons.dark_mode,
-            //     color: Colors.white,
-            //   ),
-            //   title: Row(
-            //     children: [
-            //       Text(
-            //         'Dark Mode',
-            //         style: TextStyle(
-            //             fontWeight: FontWeight.bold, color: Colors.white),
-            //       ),
-            //       Spacer(),Padding(
-            //         padding: EdgeInsets.only(right: 20),
-            //         child: Text(
-            //          "Coming soon!",
-            //           style: TextStyle(
-            //               fontSize: 10,
-            //               fontStyle: FontStyle.italic,
-            //               color: Colors.grey),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            //   onTap: () {},
-            // ),
           ],
         ),
       ),
@@ -401,7 +378,9 @@ class _HomepageState extends State<Homepage> {
         foregroundColor: Color.fromARGB(255, 5, 44, 77),
         title: Text(
           'Grave Mapping',
-          style: GoogleFonts.righteous(color: Color.fromARGB(255, 5, 44, 77),),
+          style: GoogleFonts.righteous(
+            color: Color.fromARGB(255, 5, 44, 77),
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -600,14 +579,18 @@ class _HomepageState extends State<Homepage> {
                                           children: [
                                             Image.asset(
                                                 'assets/icons8-place-marker-96.png',
-                                                scale: 3),
+                                                scale: 3.5),
                                             SizedBox(width: 5),
-                                            Text('Search Now!')
+                                            Text(
+                                              'Search Now!',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            )
                                           ],
                                         ),
                                         SizedBox(height: 5),
                                         const Text(
-                                          "       Please make sure you have a strong internet connection to use the app properly.",
+                                          "       Locate the gravesite of your beloved family member or friend.",
                                           style: TextStyle(
                                               color: Color.fromARGB(
                                                   255, 5, 44, 77)),
@@ -632,6 +615,8 @@ class _HomepageState extends State<Homepage> {
                                         .collection("Records")
                                         .where("Fullname",
                                             isGreaterThanOrEqualTo: search)
+                                        .where("Fullname",
+                                            isLessThan: search + 'z')
                                         .snapshots()
                                     : FirebaseFirestore.instance
                                         .collection('Records')
@@ -720,7 +705,11 @@ class _HomepageState extends State<Homepage> {
                                   } else if (snapshot.data?.size == 0) {
                                     return Column(
                                       children: [
-                                        Image.asset("assets/errorIcon.png")
+                                        Padding(
+                                          padding: const EdgeInsets.all(20.0),
+                                          child: Text(
+                                              "We couldn't find any records matching your search."),
+                                        ),
                                       ],
                                     );
                                   }
@@ -854,65 +843,15 @@ class _HomepageState extends State<Homepage> {
                                                           Colors.blue.shade900,
                                                     ),
                                                     onTap: () {
-                                                      showDialog(
-                                                        context: context,
-                                                        barrierDismissible:
-                                                            false,
-                                                        builder: (context) =>
-                                                            Center(
-                                                          child: (Container(
-                                                            height: 400,
-                                                            width:
-                                                                double.infinity,
-                                                            decoration:
-                                                                BoxDecoration(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            20),
-                                                                    border:
-                                                                        Border
-                                                                            .all(
-                                                                      color: const Color
-                                                                              .fromARGB(
-                                                                          255,
-                                                                          69,
-                                                                          2,
-                                                                          124),
-                                                                    ),
-                                                                    image: DecorationImage(
-                                                                        image: CachedNetworkImageProvider(
-                                                                          image
-                                                                              .toString(),
-                                                                        ),
-                                                                        fit: BoxFit.cover)),
-                                                            child: Column(
-                                                              children: [
-                                                                Row(
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .end,
-                                                                  children: [
-                                                                    GestureDetector(
-                                                                        child: Image
-                                                                            .asset(
-                                                                          "assets/cancelIcon.png",
-                                                                          color: Colors
-                                                                              .blue
-                                                                              .shade900,
-                                                                          scale:
-                                                                              3,
-                                                                        ),
-                                                                        onTap:
-                                                                            () {
-                                                                          navigatorKey
-                                                                              .currentState!
-                                                                              .popUntil((route) => route.isFirst);
-                                                                        })
-                                                                  ],
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          )),
+                                                      setState(() {
+                                                        showimage = image;
+                                                        showfullname = fullname;
+                                                      });
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              ShowImage(),
                                                         ),
                                                       );
                                                     },
@@ -926,273 +865,16 @@ class _HomepageState extends State<Homepage> {
                                                           Colors.blue.shade900,
                                                     ),
                                                     onTap: () {
-                                                      _getPolylineCoordinates();
-                                                      showDialog(
-                                                        context: context,
-                                                        barrierDismissible:
-                                                            false,
-                                                        builder: (context) =>
-                                                            Center(
-                                                          child: (Container(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(10),
-                                                            height: 500,
-                                                            width:
-                                                                double.infinity,
-                                                            decoration:
-                                                                BoxDecoration(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            20),
-                                                                    border:
-                                                                        Border
-                                                                            .all(
-                                                                      color: const Color
-                                                                              .fromARGB(
-                                                                          255,
-                                                                          69,
-                                                                          2,
-                                                                          124),
-                                                                    ),
-                                                                    color: Colors
-                                                                        .white),
-                                                            child: Column(
-                                                              children: [
-                                                                Row(
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .end,
-                                                                  children: [
-                                                                    GestureDetector(
-                                                                        child: Image
-                                                                            .asset(
-                                                                          "assets/cancelIcon.png",
-                                                                          scale:
-                                                                              3,
-                                                                        ),
-                                                                        onTap:
-                                                                            () {
-                                                                          navigatorKey
-                                                                              .currentState!
-                                                                              .popUntil((route) => route.isFirst);
-                                                                        }),
-                                                                  ],
-                                                                ),
-                                                                SizedBox(
-                                                                    height: 5),
-                                                                Stack(
-                                                                  children: [
-                                                                    Container(
-                                                                      decoration:
-                                                                          BoxDecoration(
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(20),
-                                                                      ),
-                                                                      height:
-                                                                          300,
-                                                                      width: double
-                                                                          .infinity,
-                                                                      child:
-                                                                          GoogleMap(
-                                                                        initialCameraPosition: CameraPosition(
-                                                                            target: LatLng(lat,
-                                                                                long),
-                                                                            zoom:
-                                                                                30),
-                                                                        markers: (long !=
-                                                                                null)
-                                                                            ? {
-                                                                                Marker(
-                                                                                  markerId: const MarkerId('graveMarker'),
-                                                                                  position: LatLng(lat, long),
-                                                                                  infoWindow: InfoWindow(title: fullname),
-                                                                                )
-                                                                              }
-                                                                            : Set(),
-                                                                        zoomControlsEnabled:
-                                                                            true,
-                                                                        zoomGesturesEnabled:
-                                                                            true,
-                                                                        tiltGesturesEnabled:
-                                                                            true,
-                                                                        scrollGesturesEnabled:
-                                                                            true,
-                                                                        myLocationEnabled:
-                                                                            true,
-                                                                        rotateGesturesEnabled:
-                                                                            true,
-                                                                        mapType: mapType ==
-                                                                                "Satellite"
-                                                                            ? MapType.satellite
-                                                                            : MapType.normal,
-                                                                        trafficEnabled:
-                                                                            true,
-                                                                        polylines: {
-                                                                          Polyline(
-                                                                            polylineId:
-                                                                                PolylineId('polyline_id'),
-                                                                            color:
-                                                                                Colors.blue,
-                                                                            width:
-                                                                                5,
-                                                                            points:
-                                                                                polylineCoordinates,
-                                                                          ),
-                                                                        },
-                                                                      ),
-                                                                    ),
-                                                                    // GestureDetector(
-                                                                    //   onTap:
-                                                                    //       () async {
-                                                                    //         final Uri _url = Uri.parse('https://www.google.com/maps/dir//$lat,$long/17z');
-                                                                    //         if (!await launchUrl(_url)) {
-                                                                    //         throw Exception('Could not launch $_url');
-                                                                    //         }
-                                                                    //       },
-                                                                    //   child:
-                                                                    //       Row(
-                                                                    //     mainAxisAlignment:
-                                                                    //         MainAxisAlignment.end,
-                                                                    //     children: [
-                                                                    //       Padding(
-                                                                    //         padding:
-                                                                    //             EdgeInsets.all(5),
-                                                                    //         child:
-                                                                    //             Icon(Icons.directions, size: 30, color: Colors.blue),
-                                                                    //       ),
-                                                                    //     ],
-                                                                    //   ),
-                                                                    // )
-                                                                  ],
-                                                                ),
-                                                                SizedBox(
-                                                                  height: 10,
-                                                                ),
-                                                                SingleChildScrollView(
-                                                                  scrollDirection:
-                                                                      Axis.horizontal,
-                                                                  physics:
-                                                                      const BouncingScrollPhysics(),
-                                                                  child: Row(
-                                                                    children: [
-                                                                      Container(
-                                                                        padding:
-                                                                            const EdgeInsets.all(10),
-                                                                        decoration:
-                                                                            BoxDecoration(
-                                                                          color: const Color.fromARGB(
-                                                                              255,
-                                                                              203,
-                                                                              232,
-                                                                              255),
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(20),
-                                                                        ),
-                                                                        height:
-                                                                            130,
-                                                                        width:
-                                                                            200,
-                                                                        child:
-                                                                            Column(
-                                                                          children: [
-                                                                            Row(
-                                                                              children: [
-                                                                                Image.asset(
-                                                                                  'assets/helpIcon.png',
-                                                                                  scale: 3,
-                                                                                ),
-                                                                              ],
-                                                                            ),
-                                                                            const Text(
-                                                                              "       Please make sure you have a strong internet connection to use the app properly.",
-                                                                              style: TextStyle(color: Color.fromARGB(255, 5, 44, 77)),
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                      ),
-                                                                      const SizedBox(
-                                                                          width:
-                                                                              20),
-                                                                      Container(
-                                                                        padding:
-                                                                            const EdgeInsets.all(10),
-                                                                        decoration:
-                                                                            BoxDecoration(
-                                                                          color: const Color.fromARGB(
-                                                                              255,
-                                                                              203,
-                                                                              232,
-                                                                              255),
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(20),
-                                                                        ),
-                                                                        height:
-                                                                            130,
-                                                                        width:
-                                                                            200,
-                                                                        child:
-                                                                            Column(
-                                                                          children: [
-                                                                            Row(
-                                                                              children: [
-                                                                                Image.asset(
-                                                                                  'assets/locationIcon.png',
-                                                                                  scale: 3,
-                                                                                )
-                                                                              ],
-                                                                            ),
-                                                                            const Text(
-                                                                              "       To navigate to the grave, click the location icon on the Google map and then the direction icon at the bottom.",
-                                                                              style: TextStyle(color: Color.fromARGB(255, 5, 44, 77)),
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                      ),
-                                                                      const SizedBox(
-                                                                          width:
-                                                                              20),
-                                                                      Container(
-                                                                        padding:
-                                                                            const EdgeInsets.all(10),
-                                                                        decoration:
-                                                                            BoxDecoration(
-                                                                          color: const Color.fromARGB(
-                                                                              255,
-                                                                              203,
-                                                                              232,
-                                                                              255),
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(20),
-                                                                        ),
-                                                                        height:
-                                                                            130,
-                                                                        width:
-                                                                            200,
-                                                                        child:
-                                                                            Column(
-                                                                          children: [
-                                                                            Row(
-                                                                              children: [
-                                                                                Image.asset(
-                                                                                  'assets/imageIcon.png',
-                                                                                  scale: 3,
-                                                                                )
-                                                                              ],
-                                                                            ),
-                                                                            const Text(
-                                                                              "       View the provided grave image for more details.",
-                                                                              style: TextStyle(color: Color.fromARGB(255, 5, 44, 77)),
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          )),
+                                                      setState(() {
+                                                        showlat = lat;
+                                                        showlong = long;
+                                                        showfullname = fullname;
+                                                      });
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              Show(),
                                                         ),
                                                       );
                                                     },

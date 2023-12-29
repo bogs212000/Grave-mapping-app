@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:grapp/UI/auth/sign_in.dart';
 import 'package:grapp/UI/homepage.dart';
+import 'package:grapp/UI/onbording.page.dart';
 import 'package:lottie/lottie.dart';
 
 class Wrapper extends StatelessWidget {
@@ -49,7 +50,7 @@ class Wrapper extends StatelessWidget {
               context,
             ) {
               if (userData.data!['role'] == 'client') {
-                return Homepage();
+                return OnbordingPage();
               } else {
                 return SignInPage();
               }

@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'UI/auth/auth_wrapper.dart';
 import 'UI/auth/sign_up.dart';
 import 'UI/onbording.dart';
+import 'UI/showdata/show.dart';
 import 'UI/terms.conditions/terms.conditions.dart';
 import 'UI/terms.conditions/terms.conditions.front.dart';
 

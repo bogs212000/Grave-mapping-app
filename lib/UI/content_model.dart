@@ -18,7 +18,7 @@ List<UnbordingContent> contents = [
   UnbordingContent(
       title: 'Hi!',
       image: 'assets/lottie/82709-ghost.json',
-      discription: "Welcome to the Grapp Mapping App.",
+      discription: "Welcome to the Grave Mapping App.",
       discription1: '',
       discription2: ''),
   UnbordingContent(

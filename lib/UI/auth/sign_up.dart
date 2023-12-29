@@ -23,6 +23,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _obscureText = true;
   String role = 'client';
   bool loading = false;
+  bool isValidEmail = false;
 
   @override
   Widget build(BuildContext context) {
@@ -102,26 +103,6 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
               const SizedBox(height: 20),
               TextFormField(
-                controller: email,
-                keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(fontSize: 15),
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.all(10),
-                  focusColor: Colors.blue[200],
-                  hintText: "Email",
-                  filled: true,
-                  fillColor: Colors.blue[50],
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: const BorderSide(color: Colors.white)),
-                  labelStyle: const TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.white),
-                      borderRadius: BorderRadius.circular(20.0)),
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
                 controller: age,
                 keyboardType: TextInputType.number,
                 style: const TextStyle(fontSize: 15),
@@ -140,6 +121,44 @@ class _SignUpPageState extends State<SignUpPage> {
                       borderRadius: BorderRadius.circular(20.0)),
                 ),
               ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: email,
+                keyboardType: TextInputType.emailAddress,
+                style: const TextStyle(fontSize: 15),
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.all(10),
+                  focusColor: Colors.blue[200],
+                  hintText: "Email",
+                  filled: true,
+                  fillColor: Colors.blue[50],
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: const BorderSide(color: Colors.white)),
+                  labelStyle: const TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(20.0)),
+                ),
+                onChanged: (text) {
+                  setState(() {
+                    isValidEmail = _isValidEmail(text);
+                  });
+                },
+              ),
+              if (!isValidEmail && email.text.isNotEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 4.0, left: 8.0),
+                  // Adjust the padding as needed
+                  child: Row(
+                    children: [
+                      Text(
+                        'Invalid Email',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 20),
               TextFormField(
                 obscureText: _obscureText,
@@ -327,11 +346,19 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
               SizedBox(height: 20),
-              Text('Please ensure that the information you provided is correct. Your information will not be shown to others.')
+              const Text(
+                  'Please ensure that the information you provided is correct. Your information will not be shown to others.')
             ],
           ),
         ),
       ),
     );
+  }
+
+  bool _isValidEmail(String email) {
+    // Regular expression for a simple email validation
+    String emailRegex = r'^[a-z][\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$';
+    RegExp regex = RegExp(emailRegex);
+    return regex.hasMatch(email);
   }
 }

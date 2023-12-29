@@ -6,8 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:grapp/UI/showdata/show.dart';
+import 'package:grapp/UI/showdata/show.image.dart';
 import 'package:shimmer/shimmer.dart';
 
+import 'const/const.dart';
 import 'homepage.dart';
 
 String sortBy = "Fullname";
@@ -40,7 +43,6 @@ class _ListPageState extends State<ListPage> {
         appBar: AppBar(
           foregroundColor: Colors.blue[200],
           title: Row(
-
             children: [
               const Text(
                 "Sort by: ",
@@ -115,7 +117,7 @@ class _ListPageState extends State<ListPage> {
                             ),
                           ),
                     filled: true,
-                    fillColor:Colors.blue.shade50,
+                    fillColor: Colors.blue.shade50,
                     focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(40),
                         borderSide: const BorderSide(color: Colors.white)),
@@ -136,6 +138,7 @@ class _ListPageState extends State<ListPage> {
               ? FirebaseFirestore.instance
                   .collection("Records")
                   .where("Fullname", isGreaterThanOrEqualTo: search)
+                  .where("Fullname", isLessThan: search + 'z')
                   .snapshots()
               : FirebaseFirestore.instance
                   .collection('Records')
@@ -159,10 +162,10 @@ class _ListPageState extends State<ListPage> {
                 ],
               );
             } else if (snapshot.data?.size == 0) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [Image.asset("assets/errorIcon.png")],
-              );
+              return Center(child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Text("We couldn't find any records matching your search."),
+              ));
             }
             if (snapshot.connectionState == ConnectionState.waiting) {
               return ListView.builder(
@@ -219,7 +222,8 @@ class _ListPageState extends State<ListPage> {
                               children: [
                                 Image.asset(
                                   "assets/graveIcon.png",
-                                  scale: 2.5, color: Colors.blue.shade900,
+                                  scale: 2.5,
+                                  color: Colors.blue.shade900,
                                 ),
                                 const SizedBox(width: 5),
                                 Column(
@@ -262,44 +266,19 @@ class _ListPageState extends State<ListPage> {
                                 GestureDetector(
                                   child: Image.asset(
                                     "assets/imageIcon.png",
-                                    scale: 2.4, color: Colors.blue.shade900,
+                                    scale: 2.4,
+                                    color: Colors.blue.shade900,
                                   ),
                                   onTap: () {
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (context) => Center(
-                                          child: (Container(
-                                        height: 400,
-                                        width: double.infinity,
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            border: Border.all(
-                                                color: const Color.fromARGB(
-                                                    255, 69, 2, 124)),
-                                            image: DecorationImage(
-                                                image:
-                                                    CachedNetworkImageProvider(
-                                                        image.toString()),
-                                                fit: BoxFit.cover)),
-                                        child: Column(children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
-                                            children: [
-                                              GestureDetector(
-                                                  child: Image.asset(
-                                                    "assets/cancelIcon.png",
-                                                    scale: 3, color: Colors.blue.shade900,
-                                                  ),
-                                                  onTap: () {
-                                                    Navigator.of(context).pop();
-                                                  })
-                                            ],
-                                          )
-                                        ]),
-                                      ))),
+                                    setState(() {
+                                      showimage = image;
+                                      showfullname = fullname;
+                                    });
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ShowImage(),
+                                      ),
                                     );
                                   },
                                 ),
@@ -307,206 +286,20 @@ class _ListPageState extends State<ListPage> {
                                 GestureDetector(
                                   child: Image.asset(
                                     "assets/locationIcon.png",
-                                    scale: 2.4, color: Colors.blue.shade900,
+                                    scale: 2.4,
+                                    color: Colors.blue.shade900,
                                   ),
                                   onTap: () {
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (context) => Center(
-                                          child: (Container(
-                                        padding: const EdgeInsets.all(10),
-                                        height: 500,
-                                        width: double.infinity,
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            border: Border.all(
-                                                color: const Color.fromARGB(
-                                                    255, 69, 2, 124)),
-                                            color: Colors.white),
-                                        child: Column(children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
-                                            children: [
-                                              GestureDetector(
-                                                  child: Image.asset(
-                                                    "assets/cancelIcon.png",
-                                                    scale: 3,
-                                                  ),
-                                                  onTap: () {
-                                                    Navigator.of(context).pop();
-                                                  }),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Container(
-                                            decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(20)),
-                                            height: 300,
-                                            width: double.infinity,
-                                            child: GoogleMap(
-                                              initialCameraPosition:
-                                                  CameraPosition(
-                                                      target: LatLng(lat, long),
-                                                      zoom: 30),
-                                              markers: (lat != null &&
-                                                      long != null)
-                                                  ? {
-                                                      Marker(
-                                                        markerId:
-                                                            const MarkerId(
-                                                                'graveMarker'),
-                                                        position:
-                                                            LatLng(lat, long),
-                                                        infoWindow: InfoWindow(
-                                                            title: fullname),
-                                                      )
-                                                    }
-                                                  : Set(),
-                                              zoomControlsEnabled: true,
-                                              zoomGesturesEnabled: true,
-                                              tiltGesturesEnabled: true,
-                                              scrollGesturesEnabled: true,
-                                              rotateGesturesEnabled: true,
-                                              mapType: mapType == "Satellite"
-                                                  ? MapType.satellite
-                                                  : MapType.normal,
-                                              trafficEnabled: true,
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            height: 10,
-                                          ),
-                                          SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            physics:
-                                                const BouncingScrollPhysics(),
-                                            child: Row(
-                                              children: [
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.all(10),
-                                                  decoration: BoxDecoration(
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              203,
-                                                              232,
-                                                              255),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20)),
-                                                  height: 130,
-                                                  width: 200,
-                                                  child: Column(
-                                                    children: [
-                                                      Row(
-                                                        children: [
-                                                          Image.asset(
-                                                            'assets/helpIcon.png',
-                                                            scale: 3,
-                                                          )
-                                                        ],
-                                                      ),
-                                                      const Text(
-                                                        "       Please make sure you have a strong internet connection to use the app properly.",
-                                                        style: TextStyle(
-                                                            color:
-                                                                Color.fromARGB(
-                                                                    255,
-                                                                    5,
-                                                                    44,
-                                                                    77)),
-                                                      )
-                                                    ],
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 20),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.all(10),
-                                                  decoration: BoxDecoration(
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              203,
-                                                              232,
-                                                              255),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20)),
-                                                  height: 130,
-                                                  width: 200,
-                                                  child: Column(
-                                                    children: [
-                                                      Row(
-                                                        children: [
-                                                          Image.asset(
-                                                            'assets/locationIcon.png',
-                                                            scale: 3,
-                                                          )
-                                                        ],
-                                                      ),
-                                                      const Text(
-                                                        "       To navigate to the grave, click the location icon on the Google map and then the direction icon at the bottom.",
-                                                        style: TextStyle(
-                                                            color:
-                                                                Color.fromARGB(
-                                                                    255,
-                                                                    5,
-                                                                    44,
-                                                                    77)),
-                                                      )
-                                                    ],
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 20),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.all(10),
-                                                  decoration: BoxDecoration(
-                                                      color:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              203,
-                                                              232,
-                                                              255),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20)),
-                                                  height: 130,
-                                                  width: 200,
-                                                  child: Column(
-                                                    children: [
-                                                      Row(
-                                                        children: [
-                                                          Image.asset(
-                                                            'assets/imageIcon.png',
-                                                            scale: 3,
-                                                          )
-                                                        ],
-                                                      ),
-                                                      const Text(
-                                                        "       View the provided grave image for more details.",
-                                                        style: TextStyle(
-                                                            color:
-                                                                Color.fromARGB(
-                                                                    255,
-                                                                    5,
-                                                                    44,
-                                                                    77)),
-                                                      )
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ]),
-                                      ))),
+                                    setState(() {
+                                      showlat = lat;
+                                      showlong = long;
+                                      showfullname = fullname;
+                                    });
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => Show(),
+                                      ),
                                     );
                                   },
                                 ),
